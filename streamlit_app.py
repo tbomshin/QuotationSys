@@ -9,8 +9,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 # Supabase 설정: Streamlit Cloud의 secrets.toml에서 로드
-SUPABASE_URL = os.getenv("SUPABASE_URL")  # secrets.toml에서 제공
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")  # secrets.toml에서 제공
+SUPABASE_URL = os.getenv("SUPABASE_URL")  
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")  
 
 # 상태 옵션
 CONDITION_OPTIONS = ["상", "중", "하"]
