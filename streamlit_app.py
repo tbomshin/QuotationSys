@@ -9,8 +9,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 # Supabase 설정: Streamlit Cloud의 secrets.toml에서 로드
-SUPABASE_URL = os.getenv("SUPABASE_URL")  
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")  
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 # 상태 옵션
 CONDITION_OPTIONS = ["상", "중", "하"]
@@ -52,6 +52,8 @@ def get_partgroup1(supabase: Client) -> List[Dict]:
     return get_data(supabase, "part_groups", "id, group_name", {"parent_id": None})
 
 def get_partgroup2(supabase: Client, partgroup1_id: int) -> List[Dict]:
+    if partgroup1_id is None:
+        return []
     return get_data(supabase, "part_groups", "id, group_name", {"parent_id": partgroup1_id})
 
 # 검색 기능
@@ -145,6 +147,7 @@ def product_management(supabase: Client):
                 st.warning("등록된 브랜드가 없습니다.")
 
             partgroup1_list = get_partgroup1(supabase)
+            partgroup1_id = None
             partgroup2_id = None
             if partgroup1_list:
                 partgroup1_name = st.selectbox("부품 그룹 1", [pg["group_name"] for pg in partgroup1_list])
@@ -154,7 +157,7 @@ def product_management(supabase: Client):
                     partgroup2_name = st.selectbox("부품 그룹 2", [pg["group_name"] for pg in partgroup2_list])
                     partgroup2_id = next((pg["id"] for pg in partgroup2_list if pg["group_name"] == partgroup2_name), None)
                 else:
-                    st.warning("부품 그룹 2가 없습니다.")
+                    st.warning(f"'{partgroup1_name}'에 속한 부품 그룹 2가 없습니다.")
             else:
                 st.warning("부품 그룹 1이 없습니다.")
 
@@ -414,7 +417,7 @@ def partgroup_management(supabase: Client):
                     with col_delete:
                         if st.button("삭제", key=f"delete_group1_{group['id']}"):
                             try:
-                                subgroup = get_data(supabase, "part_groups", "*", {"parent_id": group['id']})
+                                subgroup = get_partgroup2(supabase, group['id'])  # 하위 그룹 확인
                                 if subgroup:
                                     st.session_state.messages.append(f"하위 그룹이 {len(subgroup)}개 있어 삭제할 수 없습니다.")
                                 elif delete_data(supabase, "part_groups", group['id']):
